@@ -25,19 +25,8 @@ def handle_client(sock, address):
                 usernames[sock] = username
                 sock.send(f"{config.CMD_NOTIFY}{config.DELIMITER}Welcome {username}!".encode("utf-8"))
                 print(f"[DEBUG] User {username} registered from {address}")
-
-            elif command == config.CMD_SEND and len(args) >= 2:
-                room = args[0]
-                text = args[1]
-                sender = usernames.get(sock, "Anonymous")
                 
-                broadcast_msg = f"{config.CMD_MESSAGE}{config.DELIMITER}{room}{config.DELIMITER}{sender}{config.DELIMITER}{text}"
                 
-                for client_sock in list(usernames.keys()):
-                    try:
-                        client_sock.send(broadcast_msg.encode("utf-8"))
-                    except Exception:
-                        pass
             else:
                 sock.send(f"{config.CMD_ERROR}{config.DELIMITER}Command unhandled in early phase".encode("utf-8"))
 
