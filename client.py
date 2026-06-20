@@ -3,38 +3,59 @@ import threading
 import sys
 import config
 
-def receive_loop(sock):
+current_room = None
+username = None
+sock = None
+
+def receive_thread():
+    global current_room
     while True:
         try:
             data = sock.recv(config.BUFFER_SIZE)
             if not data:
-                print("\n[-] Disconnected from server pipeline.")
                 break
-            print(f"\n[Raw Stream]: {data.decode('utf-8')}")
+            parts = data.decode("utf-8").strip().split(config.DELIMITER)
+            cmd = parts[0]
+            args = parts[1:]
+
+            if cmd == config.CMD_MESSAGE:
+                print(f"\n[{args[0]}] {args[1]}: {args[2]}")
+            elif cmd == config.CMD_JOIN_OK:
+                current_room = args[0]
+                print(f"\n--- Joined: {current_room} ---")
+            elif cmd == config.CMD_ROOM_LIST:
+                print(f"\nRooms: {args[0]}")
+            elif cmd == config.CMD_NOTIFY:
+                print(f"\n*** {args[0]} ***")
+            print(f"[{current_room or 'no room'}] > ", end="", flush=True)
         except Exception:
             break
 
 def main():
+    global sock, username
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.connect((config.HOST, config.PORT))
-        print("[+] Hooked into development host.")
-    except Exception as e:
-        print(f"[-] Hook failed: {e}")
-        sys.exit(1)
+    sock.connect((config.HOST, config.PORT))
+    
+    threading.Thread(target=receive_thread, daemon=True).start()
 
-    t = threading.Thread(target=receive_loop, args=(sock,), daemon=True)
-    t.start()
-
-    print("Use syntax: SET_NAME/yourname OR SEND/General/your message")
     while True:
         try:
-            user_raw = input("> ").strip()
-            if user_raw == "/quit":
+            inp = input(f"[{current_room or 'no room'}] > ").strip()
+            if not inp: continue
+            
+            if inp.startswith("/name "):
+                username = inp[6:].strip()
+                sock.send(f"{config.CMD_SET_NAME}{config.DELIMITER}{username}".encode("utf-8"))
+            elif inp.startswith("/join "):
+                sock.send(f"{config.CMD_JOIN}{config.DELIMITER}{inp[6:].strip()}".encode("utf-8"))
+            elif inp == "/quit":
                 break
-            if user_raw:
-                sock.send(user_raw.encode("utf-8"))
-        except KeyboardInterrupt:
+            else:
+                if current_room:
+                    sock.send(f"{config.CMD_SEND}{config.DELIMITER}{current_room}{config.DELIMITER}{inp}".encode("utf-8"))
+                else:
+                    print("Join a room first.")
+        except (KeyboardInterrupt, EOFError):
             break
     sock.close()
 
