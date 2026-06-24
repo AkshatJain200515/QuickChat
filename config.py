@@ -1,4 +1,3 @@
-
 # Server connection settings
 HOST = "127.0.0.1"
 PORT = 5555
@@ -11,9 +10,8 @@ MAX_MESSAGE_LEN = 500
 # These rooms are created when the server starts
 DEFAULT_ROOMS = ["General", "Tech", "Random"]
 
-# We use a pipe "/" to separate parts of each message
+# We use a forward slash "/" to separate parts of each message
 # Format: COMMAND/arg1/arg2
-# Example: SEND/General/Hello everyone
 DELIMITER = "/"
 
 # Commands the server sends to clients
@@ -32,6 +30,7 @@ CMD_CREATE    = "CREATE"
 CMD_INVITE    = "INVITE"
 CMD_LIST      = "LIST"
 CMD_QUIT      = "QUIT"
+CMD_LEAVE     = "LEAVE"   
 
 # Log file path
 LOG_FILE = "server.log"
