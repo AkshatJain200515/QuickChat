@@ -22,7 +22,7 @@ user_rooms = {}  # socket -> current room name
 
 
 def build_msg(*parts):
-    # Join command parts with the pipe delimiter
+    # Join command parts with the delimiter from config
     return config.DELIMITER.join(str(p) for p in parts)
 
 
@@ -127,11 +127,11 @@ def handle_join(sock, args):
 def handle_send(sock, args):
     # Client is sending a chat message
     if len(args) < 2:
-        send_to(sock, build_msg(config.CMD_ERROR, "Usage: SEND|room|message"))
+        send_to(sock, build_msg(config.CMD_ERROR, "Usage: SEND/room/message"))
         return
 
     room = args[0].strip()
-    # Rejoin remaining parts in case the message itself contained a pipe
+    # Rejoin remaining parts in case the message itself contained the delimiter
     text = config.DELIMITER.join(args[1:]).strip()
 
     with lock:
@@ -218,6 +218,23 @@ def handle_quit(sock, args):
     raise ConnectionResetError("Client disconnected")
 
 
+def handle_leave(sock, args):
+    # Client wants to leave their current room but stay connected
+    with lock:
+        username = usernames.get(sock, "unknown")
+        room = user_rooms.get(sock)
+        if room and room in rooms:
+            rooms[room].discard(sock)
+            user_rooms[sock] = None
+
+    if room:
+        broadcast(room, build_msg(config.CMD_NOTIFY, f"{username} left {room}"))
+        send_to(sock, build_msg(config.CMD_NOTIFY, f"You left {room}. Use /join <room> to join another room."))
+        logging.info(f"{username} left room '{room}'")
+    else:
+        send_to(sock, build_msg(config.CMD_ERROR, "You are not in any room"))
+
+
 # Map each command string to its handler function
 # This makes it easy to add new commands later
 COMMAND_HANDLERS = {
@@ -228,6 +245,7 @@ COMMAND_HANDLERS = {
     config.CMD_INVITE   : handle_invite,
     config.CMD_LIST     : handle_list,
     config.CMD_QUIT     : handle_quit,
+    config.CMD_LEAVE    : handle_leave,
 }
 
 
