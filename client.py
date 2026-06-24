@@ -5,6 +5,7 @@ import sys
 import config
 
 # ANSI escape codes for colored terminal output
+# Makes it easier to distinguish messages, errors, and notifications
 RESET   = "\033[0m"
 BOLD    = "\033[1m"
 RED     = "\033[91m"
@@ -124,6 +125,11 @@ def parse_input(user_input):
     elif user_input == "/rooms":
         send_cmd(config.CMD_LIST)
 
+    elif user_input == "/leave":
+        send_cmd(config.CMD_LEAVE)
+        global current_room
+        current_room = None
+
     elif user_input == "/quit":
         send_cmd(config.CMD_QUIT)
         global running
@@ -139,6 +145,7 @@ def parse_input(user_input):
   /create <room>           - create a new room
   /invite <room> <user>    - invite someone to a room
   /rooms                   - list all rooms
+  /leave                   - leave current room (stay connected)
   /quit                    - disconnect
   <anything else>          - send a message to current room
 """)
