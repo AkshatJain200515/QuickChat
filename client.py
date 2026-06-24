@@ -1,4 +1,3 @@
-
 import socket
 import threading
 import sys
@@ -161,7 +160,7 @@ def parse_input(user_input):
 def main():
     global sock, running
 
-    print(f"{CYAN}PyChat - B205 Computer Networks{RESET}")
+    print(f"{CYAN}QuickChat - B205 Computer Networks{RESET}")
     print(f"Connecting to {config.HOST}:{config.PORT}...")
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
