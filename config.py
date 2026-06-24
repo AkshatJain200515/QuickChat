@@ -1,3 +1,4 @@
+
 # Server connection settings
 HOST = "127.0.0.1"
 PORT = 5555
@@ -7,7 +8,7 @@ BUFFER_SIZE = 4096
 MAX_USERNAME_LEN = 20
 MAX_MESSAGE_LEN = 500
 
-# rooms created when the server starts
+# These rooms are created when the server starts
 DEFAULT_ROOMS = ["General", "Tech", "Random"]
 
 # We use a pipe "/" to separate parts of each message
